@@ -12,9 +12,9 @@ namespace SystemFileReader
         private readonly string _treePath = @"D:\tmp\folderTree.txt";
         private readonly string _logPath = @"D:\tmp\log.txt";
         private ConsoleKeyInfo _key;
-        private Task[] Tasks;
-        public static CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
-        private CancellationToken Token = CancelTokenSource.Token;
+        private Task[] _tasks;
+        private static readonly CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
+        private readonly CancellationToken _token = CancelTokenSource.Token;
 
         public FileReader(string viewPath = @"d:\onedrive\")
         {
@@ -41,23 +41,23 @@ namespace SystemFileReader
 
             var root = new FileReaderLogic(ViewPath, _treePath, _logPath);
 
-            Tasks = new Task[3] { new Task(() => root.Start(Token)), new Task(() => root.Start(Token)), new Task(() => root.Start(Token)) };
+            _tasks = new Task[3] { new Task(() => root.Start(_token)), new Task(() => root.Start(_token)), new Task(() => root.Start(_token)) };
 
-            foreach (var task in Tasks)
+            foreach (var task in _tasks)
             {
                 task.Start();
             }
 
             while (true)
             {
-                if (Tasks.All(x => x.Status == TaskStatus.RanToCompletion)) break;
+                if (_tasks.All(x => x.Status == TaskStatus.RanToCompletion)) break;
 
                 if (_key.Key == ConsoleKey.F1)
                     root.WaitHandler.Reset();
                 else if (_key.Key == ConsoleKey.F2)
                     root.WaitHandler.Set();
                 else if (_key.Key == ConsoleKey.F3)
-                    foreach (var task in Tasks)
+                    foreach (var task in _tasks)
                     {
                         Console.WriteLine($"TaskId {task.Id} {task.Status}");
                     }
