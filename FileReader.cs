@@ -41,7 +41,6 @@ namespace SystemFileReader
 
             var root = new FileReaderLogic(ViewPath, _treePath, _logPath);
 
-            var tokenSource = new System.Threading.CancellationTokenSource();
             Tasks = new Task[3] { new Task(() => root.Start(Token)), new Task(() => root.Start(Token)), new Task(() => root.Start(Token)) };
 
             foreach (var task in Tasks)
