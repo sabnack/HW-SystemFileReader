@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SystemFileReader
@@ -12,6 +13,8 @@ namespace SystemFileReader
         private readonly string _logPath = @"D:\tmp\log.txt";
         private ConsoleKeyInfo _key;
         private Task[] Tasks;
+        public static CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
+        private CancellationToken Token = CancelTokenSource.Token;
 
         public FileReader(string viewPath = @"d:\onedrive\")
         {
@@ -22,7 +25,7 @@ namespace SystemFileReader
         {
             if (!Directory.GetParent(ViewPath).Exists)
             {
-                Console.WriteLine($@"Folder dosen`t exist");
+                Console.WriteLine($"Folder dosen`t exist");
                 return;
             }
 
@@ -38,7 +41,8 @@ namespace SystemFileReader
 
             var root = new FileReaderLogic(ViewPath, _treePath, _logPath);
 
-            Tasks = new Task[3] { new Task(() => root.Start()), new Task(() => root.Start()), new Task(() => root.Start()) };
+            var tokenSource = new System.Threading.CancellationTokenSource();
+            Tasks = new Task[3] { new Task(() => root.Start(Token)), new Task(() => root.Start(Token)), new Task(() => root.Start(Token)) };
 
             foreach (var task in Tasks)
             {
@@ -58,6 +62,10 @@ namespace SystemFileReader
                     {
                         Console.WriteLine($"TaskId {task.Id} {task.Status}");
                     }
+                else if (_key.Key == ConsoleKey.Escape)
+                {
+                    CancelTokenSource.Cancel();
+                }
                 _key = Console.ReadKey(true);
             }
 

@@ -19,6 +19,7 @@ namespace SystemFileReader
         private string TreePath;
         private string LogPath;
         public EventWaitHandle WaitHandler = new ManualResetEvent(true);
+        
 
         public FileReaderLogic(string path, string treePath, string logPath)
         {
@@ -30,12 +31,12 @@ namespace SystemFileReader
             LogPath = logPath;
         }
 
-        public void Start()
+        public void Start(CancellationToken token)
         {
-            WalkDirectoryTree(RootDir);
+            WalkDirectoryTree(RootDir, token);
         }
 
-        private void WalkDirectoryTree(DirectoryInfo root)
+        private void WalkDirectoryTree(DirectoryInfo root, CancellationToken token)
         {
 
             try
@@ -86,8 +87,14 @@ namespace SystemFileReader
                         Console.WriteLine($"{dirInfo.FullName}  TaskID {Task.CurrentId}");
                     }
                 }
+
+                if (token.IsCancellationRequested)
+                {
+                    Console.WriteLine("Операция прервана");
+                    return;
+                }
                 WaitHandler.WaitOne();
-                WalkDirectoryTree(dirInfo);
+                WalkDirectoryTree(dirInfo, token);
             }
         }
     }
